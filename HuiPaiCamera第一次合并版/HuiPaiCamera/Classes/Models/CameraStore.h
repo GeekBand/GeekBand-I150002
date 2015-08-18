@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "FastFilter.h"
 
 @interface CameraStore : NSObject
 
@@ -17,8 +18,10 @@
 @property (nonatomic , copy) NSString* ItemImageURL;  //照片
 @property (nonatomic , copy) NSString* WangGeImageURL; //接口网格
 @property (nonatomic , copy) NSString* WanZhengImageURL; //接口实际图片
+@property (nonatomic , copy) FastFilter* fastFilter;
 
--(instancetype)initWithItemName:(NSString *)itemName ItemInformation:(NSString*)ItemInformation ItemTitle:(NSString*)ItemTitle ItemImage:(NSString*)ItemImageURL WangGeImage:(NSString*)WangGeImageURL WangZhengImage:(NSString*)WanZhengImageURL;
+
+-(instancetype)initWithItemName:(NSString *)itemName ItemInformation:(NSString*)ItemInformation ItemTitle:(NSString*)ItemTitle ItemImage:(NSString*)ItemImageURL WangGeImage:(NSString*)WangGeImageURL WangZhengImage:(NSString*)WanZhengImageURL FastFilter:(FastFilter*)fasterFilter;
 
 -(instancetype)initWithItemName:(NSString *)itemName ItemInformation:(NSString*)ItemInformation ItemTitle:(NSString*)ItemTitle ItemImage:(NSString*)ItemImageURL;
 

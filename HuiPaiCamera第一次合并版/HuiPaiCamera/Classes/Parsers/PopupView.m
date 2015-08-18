@@ -74,7 +74,9 @@
     
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         FZPickerController *picker = [[FZPickerController alloc] init];
-           [self.parentVC presentViewController:picker animated:YES completion:nil];
+        picker.fastFilter = self.cameraStore.fastFilter;
+        [self.parentVC presentViewController:picker animated:YES completion:nil];
+        
     }else{
         UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"警告" message:@"你的设备没有相机设备" delegate:self cancelButtonTitle:@"关闭" otherButtonTitles:nil];
         [alertView show];

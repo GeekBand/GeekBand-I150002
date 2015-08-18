@@ -7,10 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "FastFilter.h"
 
 @interface FZPickerController : UIImagePickerController<UINavigationControllerDelegate,UIImagePickerControllerDelegate>
 
 
 @property(nonatomic,strong)UIImage *photo;
+@property(nonatomic,strong)FastFilter *fastFilter;
 
 @end

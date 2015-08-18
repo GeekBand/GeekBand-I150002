@@ -12,5 +12,7 @@
 @property (nonatomic , strong)UIImageView *imgText;
 @property (nonatomic , strong)UIImage *img;
 @property (nonatomic , strong)UITextField *textFiled;
+@property(nonatomic,strong)UILabel *textLabel;
+@property(nonatomic,strong)NSString     *location;
 @end
 

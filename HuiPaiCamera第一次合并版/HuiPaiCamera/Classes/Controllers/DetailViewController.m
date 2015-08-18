@@ -12,6 +12,7 @@
 #import "LewPopupViewAnimationSpring.h"
 #import "UIButton1.h"
 #import "ViewController.h"
+#import "FastFilter.h"
 @interface DetailViewController ()
 {
     ViewController *parentViewController;
@@ -131,18 +132,54 @@
     return nil;
 }
 
+-(NSArray*)FastFilter{
+    if([self.viewtitle isEqualToString:@"自拍系列"]){
+       
+        FastFilter *fastFilter  = [[FastFilter alloc]initWithshareE:3.0 C:4.0 S:1.0 B:0.0 G:1.0];
+        FastFilter *fastFilter2 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter3 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter4 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+         NSArray *array = [NSArray arrayWithObjects:fastFilter,fastFilter2,fastFilter3,fastFilter4, nil];
+        return array;
+    }else if([self.viewtitle isEqualToString:@"静物美食"]){
+        FastFilter *fastFilter = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter2 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter3 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter4 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        NSArray *array = [NSArray arrayWithObjects:fastFilter,fastFilter2,fastFilter3,fastFilter4, nil];
+        return array;
+    }else if([self.viewtitle isEqualToString:@"趣味视觉"]){
+        FastFilter *fastFilter = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter2 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter3 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter4 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        NSArray *array = [NSArray arrayWithObjects:fastFilter,fastFilter2,fastFilter3,fastFilter4, nil];
+        return array;
+    }if([self.viewtitle isEqualToString:@"建筑风景"]){
+        FastFilter *fastFilter = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter2 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter3 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        FastFilter *fastFilter4 = [[FastFilter alloc]initWithshareE:0.3731 C:1.2238 S:1.2015 B:0.1068 G:1.0477];
+        NSArray *array = [NSArray arrayWithObjects:fastFilter,fastFilter2,fastFilter3,fastFilter4, nil];
+        return array;
+    }
+    return nil;
+}
+
 -(void)CombCameraStore{
     NSArray *NameArray = [self UseArray];
     NSArray *InformationArray = [self UseArray2];
+    NSArray *FastFilter = [self FastFilter];
     _CameraArray = [NSMutableArray array];
     NSInteger index=0;
     for (NSString *Name in NameArray) {
         
-        CameraStore *cameraStore = [[CameraStore alloc]initWithItemName:Name ItemInformation:[InformationArray objectAtIndex:index] ItemTitle:_viewtitle ItemImage:[NSString stringWithFormat:@"%@%ld",self.viewtitle,(long)index] WangGeImage:nil WangZhengImage:nil];
+        CameraStore *cameraStore = [[CameraStore alloc]initWithItemName:Name ItemInformation:[InformationArray objectAtIndex:index] ItemTitle:_viewtitle ItemImage:[NSString stringWithFormat:@"%@%ld",self.viewtitle,(long)index] WangGeImage:nil WangZhengImage:nil FastFilter:[FastFilter objectAtIndex:index]];
           index++;
         [_CameraArray addObject:cameraStore];
 
     }
+    
 }
 
 

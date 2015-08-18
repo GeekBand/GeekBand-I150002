@@ -13,6 +13,7 @@
 
 @property (nonatomic,strong)CameraStore* Store;
 @property (nonatomic, strong)ALAsset *Asset;
+@property (nonatomic, strong)UIImageView *buttonImage;
 @property (nonatomic,strong)NSString *Information;
 
 @end

@@ -65,9 +65,9 @@
 -(void)actionButton:(UIButton1*)sender{
 
     PopupView *view = [PopupView defaultPopupViewWith:sender.Store Index:[sender tag]WithController:self];
-    
+    view.parentVC = self;
     [self lew_presentPopupView:view animation:[LewPopupViewAnimationSpring new] dismissed:^{
-        NSLog(@"动画结束");
+        
     }];
 
 }
@@ -151,6 +151,13 @@
 
 }
 
+
+#pragma mark --------- 支持方向
+
+
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return UIInterfaceOrientationPortrait | UIInterfaceOrientationPortraitUpsideDown;
+}
 
 
 

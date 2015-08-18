@@ -9,6 +9,13 @@
 #import "HPViewController.h"
 #import "GPUImage.h"
 #import "FXViewController.h"
+#import "UIImage+Zoom.h"
+#import "UIImage+SvImageEdit.h"
+enum {
+    enSvCropClip,               // the image size will be equal to orignal image, some part of image may be cliped
+    enSvCropExpand,             // the image size will expand to contain the whole image, remain area will be transparent
+};
+typedef NSInteger SvCropMode;
 
 #define ALIGN_BUTTON_TAG 100
 #define CLIP_TABITEM_TAG 101
@@ -33,7 +40,7 @@
 #define GammaFilter_TAG             11
 #define HighlightShadowFilter_TAG   12
 #define GaussianBlurFilter_TAG      13
-
+#define OPZI_BUTTON_TAG             14
 
 
 
@@ -52,6 +59,7 @@
     
     BOOL isClippedLastTime;
     BOOL isFilterLastTime;
+    NSInteger num;
     
 }
 
@@ -184,6 +192,12 @@
 {
     //CGFloat squareDimension;
     switch (sender.tag) {
+        case OPZI_BUTTON_TAG:
+            [self FastFilter];
+            break;
+        case ALIGN_BUTTON_TAG:
+            [self FastAlign];
+            break;
         case CLIP_SQUARE_BUTTON_TAG:
             [self clipRatioWidth:1 Height:1];
             break;
@@ -256,6 +270,8 @@
     
     switch(sender.tag)
     {
+        case ALIGN_BUTTON_TAG:
+        case OPZI_BUTTON_TAG:
         case GRAYSCALE_FILTER_TAG:
         case VIGNETTE_FILTER_TAG:
         case EMBOSS_FILTER_TAG:
@@ -631,6 +647,8 @@
     CGFloat upBarItemHeight = 60;
     UIButton *optimizeOneTimeButton = [[UIButton alloc]initWithFrame:CGRectMake(10,(upBarView.bounds.size.height - upBarItemHeight)/2.0 , 63.5, upBarItemHeight)];
     [optimizeOneTimeButton setBackgroundImage:[UIImage imageNamed:@"一键优化图标"] forState:UIControlStateNormal];
+    [optimizeOneTimeButton addTarget:self action:@selector(imageButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    optimizeOneTimeButton.tag = OPZI_BUTTON_TAG;
     [upBarView addSubview:optimizeOneTimeButton];
     
     UIButton *compareButton = [[UIButton alloc]initWithFrame:CGRectMake(upBarView.bounds.size.width/2.0 - 35,(upBarView.bounds.size.height - upBarItemHeight)/2.0 , 70, upBarItemHeight)];
@@ -821,5 +839,138 @@
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
 }
+
+-(void)FastFilter{
+    if (self.fasterFilter.exposure == 0.0&self.fasterFilter.contrast == 0.0) {
+        return;
+    }
+    if (isFilterLastTime == NO) {
+        backupPhoto = [UIImage imageWithCGImage:changedPhoto.CGImage];
+    }
+    
+
+    
+    GPUImageFilterGroup *filterGroup = [[GPUImageFilterGroup alloc]init];
+    GPUImageGammaFilter *filter = [[GPUImageGammaFilter alloc] init];
+            [filter setGamma:self.fasterFilter.gama];
+    
+    GPUImageBrightnessFilter *filter2 = [[GPUImageBrightnessFilter alloc] init];
+           [filter2 setBrightness:self.fasterFilter.brightness];
+    
+    GPUImageSaturationFilter *filter3 = [[GPUImageSaturationFilter alloc] init];
+    [filter3 setSaturation:self.fasterFilter.saturation];
+    
+    GPUImageContrastFilter *filter4 = [[GPUImageContrastFilter alloc] init];
+    [filter4 setContrast:self.fasterFilter.contrast];
+    
+    GPUImageExposureFilter *filter5 = [[GPUImageExposureFilter alloc] init];
+    [filter5 setExposure:self.fasterFilter.exposure];
+
+    
+    [filter addTarget:filter2];
+    [filter2 addTarget:filter3];
+    [filter3 addTarget:filter4];
+    [filter4 addTarget:filter5];
+    [filterGroup addFilter:filter2];
+    [filterGroup addFilter:filter];
+    [filterGroup addFilter:filter3];
+    [filterGroup addFilter:filter4];
+    [filterGroup addFilter:filter5];
+    [(GPUImageFilterGroup *) filterGroup setInitialFilters:[NSArray arrayWithObject: filter]];
+    [(GPUImageFilterGroup *) filterGroup setTerminalFilter:filter5];
+    UIImage *quickFilteredImage = [filterGroup imageByFilteringImage:backupPhoto];
+   
+    photoView.image = quickFilteredImage;
+    
+}
+
+-(void)FastAlign{
+    if (isFilterLastTime == NO) {
+        backupPhoto = [UIImage imageWithCGImage:changedPhoto.CGImage];
+    }
+    if (!num) {
+        num = 1;
+    }
+    
+    if (num == 2) {
+        return;
+    }
+    num++;
+    CGFloat jiaodu = 0;
+    if (self.jiaodu >0) {
+         jiaodu = 180 - self.jiaodu;
+    }else if(self.jiaodu <0){
+         jiaodu = -180 - self.jiaodu;
+    }else {
+        return;
+    }
+    
+    CGFloat xNumber = (fabs((fabs(jiaodu)-45)/3.7)) + 4;
+    if (fabs(jiaodu)<50) {
+        if (fabs(jiaodu)>0) {
+            xNumber = 18;
+            if (fabs(jiaodu)>10) {
+                xNumber = 7.5;   //原值8.5
+                if (fabs(jiaodu)>20) {
+                    xNumber = 6.14;
+                    if (fabs(jiaodu)>30) {
+                        xNumber = 5.35;
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    if (fabs(jiaodu)>=50) {
+        xNumber = 5;
+        if (fabs(jiaodu)>70) {
+            xNumber = 5.5;
+            if (fabs(jiaodu)>80) {
+                xNumber = 5.7;
+                if (fabs(jiaodu)>85) {
+                    xNumber = 6;
+                }
+            }
+        }
+    }
+    
+    NSLog(@"%f",xNumber);
+    backupPhoto = [backupPhoto resizeImageToSize:CGSizeMake(1500, 1500) resizeMode:enSvResizeScale];
+    backupPhoto = [self rotateImageWithRadian:M_PI/(180/jiaodu) cropMode:enSvCropClip];
+    backupPhoto = [backupPhoto cropImageWithRect:CGRectMake((backupPhoto.size.width)/xNumber, (backupPhoto.size.height)/xNumber, backupPhoto.size.width - ((backupPhoto.size.width)/(xNumber/2)), backupPhoto.size.height - ((backupPhoto.size.height)/(xNumber/2)))];
+    changedPhoto = backupPhoto;
+    photoView.image = backupPhoto;
+
+  
+
+}
+
+
+- (UIImage*)rotateImageWithRadian:(CGFloat)radian cropMode:(SvCropMode)cropMode
+{
+    CGSize imgSize = CGSizeMake( photoView.image.size.width *  photoView.image.scale,  photoView.image.size.height * photoView.image.scale);
+    CGSize outputSize = imgSize;
+    if (cropMode == enSvCropExpand) {
+        CGRect rect = CGRectMake(0, 0, imgSize.width, imgSize.height);
+        rect = CGRectApplyAffineTransform(rect, CGAffineTransformMakeRotation(radian));
+        outputSize = CGSizeMake(CGRectGetWidth(rect), CGRectGetHeight(rect));
+    }
+    
+    UIGraphicsBeginImageContext(outputSize);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGContextTranslateCTM(context, outputSize.width / 2, outputSize.height / 2);
+    CGContextRotateCTM(context, radian);
+    CGContextTranslateCTM(context, -imgSize.width / 2, -imgSize.height / 2);
+    
+    [ photoView.image drawInRect:CGRectMake(0, 0, imgSize.width, imgSize.height)];
+    
+     photoView.image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return  photoView.image;
+}
+
 
 @end

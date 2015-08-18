@@ -11,12 +11,17 @@
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "photoViewController.h"
 #import "HPViewController.h"
+#import <CoreMotion/CoreMotion.h>
 
 @interface FZPickerController ()
+{
+double jiaodu;
+}
 
 @property (nonatomic, strong) UIView *buttonsView;
 @property (nonatomic, strong) UIView *middleView;
 @property (nonatomic, strong) UIView *rightView;
+@property (nonatomic, strong)CMMotionManager *cmm;
 
 @end
 
@@ -29,11 +34,13 @@
   
     
     
-    
-    
+ 
     self.allowsEditing = NO;
     self.sourceType = UIImagePickerControllerSourceTypeCamera;
     self.showsCameraControls = NO;
+    
+
+    
     self.delegate = self;
     
     self.buttonsView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width,self.view.bounds.size.height)];
@@ -46,13 +53,13 @@
     [_buttonsView addSubview:slider];
     
     
-    UIButton *button = [[UIButton alloc]initWithFrame:CGRectMake(0,self.view.frame.size.width-100, 100, 100)];
+    UIButton *button = [[UIButton alloc]initWithFrame:CGRectMake(0,self.view.frame.size.height-100, 100, 100)];
     button.backgroundColor = [UIColor blackColor];
     [button addTarget:self action:@selector(cameraStart:) forControlEvents:UIControlEventTouchUpInside];
     [_buttonsView addSubview:button];
     
     
-    UIButton *backButton = [[UIButton alloc]initWithFrame:CGRectMake(100,self.view.frame.size.width-100, 100, 100)];
+    UIButton *backButton = [[UIButton alloc]initWithFrame:CGRectMake(100,self.view.frame.size.height-100, 100, 100)];
     backButton.backgroundColor = [UIColor yellowColor];
     [backButton addTarget:self action:@selector(cancelAction:) forControlEvents:UIControlEventTouchUpInside];
     [_buttonsView addSubview:backButton];
@@ -75,11 +82,46 @@
     [_buttonsView addSubview:photoLibraryButtom];
     
     self.cameraOverlayView = _buttonsView;
+    
+    
+
+    
+
+
+    
+    
+}
+
+-(void)viewDidAppear:(BOOL)animated{
+    _cmm = [[CMMotionManager alloc]init];
+    _cmm.gyroUpdateInterval = 0.2;
+    if (_cmm.gyroAvailable) {
+        [_cmm startDeviceMotionUpdates];
+        [_cmm startGyroUpdatesToQueue:[NSOperationQueue currentQueue] withHandler:^(CMGyroData * __nullable gyroData, NSError * __nullable error) {
+            double gravityX = _cmm.deviceMotion.gravity.x;
+            double gravityY = _cmm.deviceMotion.gravity.y;
+            //            double gravityZ = _cmm.deviceMotion.gravity.z;
+            //            double zTheta = atan2(gravityZ,sqrtf(gravityX*gravityX+gravityY*gravityY))/M_PI*180.0;
+            double xyTheta = atan2(gravityX,gravityY)/M_PI*180.0;
+            NSString *gravityY2 = [NSString stringWithFormat:@"Pad与自身旋转角度为%f",xyTheta];
+            jiaodu = xyTheta;
+            NSString *gravityZ2 = [NSString stringWithFormat:@"Pad与水平面夹角为%f",jiaodu];
+            NSLog(@"%@",gravityY2);
+            NSLog(@"%@",gravityZ2);
+        }];
+    }else{
+        NSLog(@"陀螺仪传感器无法使用");
+    }
+
 }
 
 
 -(void)cameraStart:(id)sender{
     [self takePicture];
+
+    NSLog(@"jiaodu is %f",jiaodu);
+    [_cmm stopGyroUpdates];
+    [_cmm stopDeviceMotionUpdates];
 
 
 }
@@ -87,7 +129,7 @@
 
 -(void)imagePickerController:(nonnull UIImagePickerController *)picker didFinishPickingMediaWithInfo:(nonnull NSDictionary<NSString *,id> *)info
 {
-    
+ 
     UIImage *photo = info[UIImagePickerControllerOriginalImage];
     
     HPViewController *hpController = [[HPViewController alloc]init];
@@ -95,6 +137,8 @@
     UINavigationController *navigationController = [[UINavigationController alloc]initWithRootViewController:hpController];
     hpController.tag = 1;
     hpController.MyImage = photo;
+    hpController.jiaodu = jiaodu;
+    hpController.fasterFilter = self.fastFilter;
     [self presentViewController:navigationController animated:YES completion:nil];
 }
 
@@ -137,6 +181,8 @@
 
 - (void)cancelAction:(id)sender{
     NSLog(@"cancel");
+    [_cmm stopGyroUpdates];
+    [_cmm stopDeviceMotionUpdates];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -154,6 +200,16 @@
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
 }
+
+
+
+#pragma mark --------- 支持方向
+
+
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return UIInterfaceOrientationPortrait | UIInterfaceOrientationPortraitUpsideDown;
+}
+
 
 /*
 #pragma mark - Navigation

@@ -5,23 +5,40 @@
 //  Created by ZHY on 15/8/5.
 //  Copyright (c) 2015年 ZHY. All rights reserved.
 //
+#define IS_IOS7 ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7)
+#define IS_IOS8 ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8)
 
 #import "FXViewController.h"
+#import "CCLocationManager.h"
 #import "ShareSDK/ShareSDK.h"
 #import "WXApi.h"
-@interface FXViewController ()
-
+@interface FXViewController ()<CLLocationManagerDelegate>{
+    CLLocationManager *locationmanager;
+}
 @end
 
 @implementation FXViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    if (IS_IOS8) {
+        [UIApplication sharedApplication].idleTimerDisabled = TRUE;
+        locationmanager = [[CLLocationManager alloc] init];
+        [locationmanager requestAlwaysAuthorization];        //NSLocationAlwaysUsageDescription
+        [locationmanager requestWhenInUseAuthorization];     //NSLocationWhenInUseDescription
+        locationmanager.delegate = self;
+    }
+    
+    
+    [self createButton];
+    
+    
     self.title=@"分享";
     [self.view setBackgroundColor:[UIColor whiteColor]];
     //    图片
     CGRect rectImg=CGRectMake(60, 140, 100, 100);
-//    self.img=[UIImage imageNamed:@"test.png"];
+    self.img=[UIImage imageNamed:@"test.png"];
     self.imgText=[[UIImageView alloc]initWithImage:self.img];
     self.imgText.frame=rectImg;
     [ self.imgText setUserInteractionEnabled:YES];
@@ -62,7 +79,7 @@
     //   QQ分享按钮
     CGRect rectQQShare=CGRectMake(228, 395, 54, 60);
     UIButton *btQQShare=[[UIButton alloc]initWithFrame:rectQQShare];
-    UIImage *imgQQShare=[UIImage imageNamed:@"QQ.jpg"];
+    UIImage *imgQQShare=[UIImage imageNamed:@"QQ.png"];
     [btQQShare setImage:imgQQShare forState:UIControlStateNormal];
     [btQQShare addTarget:self action:@selector(QQShareClick:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:btQQShare];
@@ -101,14 +118,26 @@
 {
     //创建分享参数
     NSMutableDictionary *shareParams = [NSMutableDictionary dictionary];
-    NSString *text=_textFiled.text;
+    NSString *content;
+    NSString *url;
     if ([_textFiled.text isEqual:@""]) {
-        text= @"分享";
+        content= [[NSMutableString alloc] initWithString:@"分享"];
     }
+    content =_textFiled.text;
+   
     
-    [shareParams SSDKSetupShareParamsByText:text
+    if ([ _textLabel.text isEqual:@"当前位置"]) {
+        url=nil;
+    }
+    else
+    {
+        url = [[NSString alloc] initWithString:[NSString stringWithFormat:@"http://mob.com/ %@" ,_textLabel.text]];
+   
+    }
+  
+    [shareParams SSDKSetupShareParamsByText:content
                                      images:@[_img]
-                                        url:nil
+                                        url:[NSURL URLWithString:url]
                                       title:@""
                                        type:SSDKContentTypeAuto];
     
@@ -261,6 +290,56 @@
      }];
 }
 
+-(void)getAllInfo
+{
+    __block NSString *string;
+    __block __weak FXViewController *wself = self;
+    
+    
+    if (IS_IOS8) {
+        
+        [[CCLocationManager shareLocation]getLocationCoordinate:^(CLLocationCoordinate2D locationCorrrdinate) {
+            string = [NSString stringWithFormat:@"%f %f",locationCorrrdinate.latitude,locationCorrrdinate.longitude];
+        } withAddress:^(NSString *addressString) {
+            NSLog(@"%@",addressString);
+            string = [NSString stringWithFormat:@"%@",addressString];
+            [wself setLabelText:string];
+            
+        }];
+    }
+    
+}
+
+-(void)setLabelText:(NSString *)text
+{
+    NSLog(@"text %@",text);
+    _textLabel.text = text;
+}
+-(void)createButton{
+    _textLabel = [[UILabel alloc] initWithFrame:CGRectMake(140, 245, 220, 60)];
+    _textLabel.backgroundColor = [UIColor clearColor];
+    _textLabel.font = [UIFont systemFontOfSize:15];
+    _textLabel.textColor = [UIColor redColor];
+    _textLabel.textAlignment = NSTextAlignmentCenter;
+    _textLabel.numberOfLines = 0;
+    _textLabel.text = @"当前位置";
+    [self.view addSubview:_textLabel];
+    
+    UIButton *allBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    allBtn.frame = CGRectMake(60,260, 120, 30);
+    [allBtn setTitle:@"点击获取地址" forState:UIControlStateNormal];
+    [allBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [allBtn addTarget:self action:@selector(getAllInfo) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:allBtn];
+    
+    [self showBorder:allBtn];
+}
+-(void)showBorder:(UIButton *)sender{
+    sender.layer.borderColor=[UIColor redColor].CGColor;
+    sender.layer.borderWidth=0.5;
+    sender.layer.cornerRadius = 8;
+    
+}
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.

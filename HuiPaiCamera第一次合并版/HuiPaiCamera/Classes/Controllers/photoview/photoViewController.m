@@ -11,8 +11,8 @@
 #import "UIButton1.h"
 #import "ListCell.h"
 #import "HPViewController.h"
-
-
+#import "CollectionCell.h"
+#import "PictureCell.h"
 
 
 
@@ -32,6 +32,8 @@
 }
 
 @property(strong,nonatomic)UITableView *ListView;
+
+@property(strong,nonatomic)UITableView *PictureView;
 
 @end
 
@@ -64,6 +66,8 @@
     label.text = @"Camera roll";
     [middleView addSubview:label];
     
+    
+    
 
     
 //    [self MakeImageGroup];
@@ -79,6 +83,7 @@
         [self.ListView setBackgroundColor:[UIColor blackColor]];
         [self.ListView setSeparatorColor:[UIColor clearColor]];
         [self.ListView setShowsVerticalScrollIndicator:NO];
+        [self.ListView setTag:2];
         [self.ListView registerNib:[UINib nibWithNibName:@"ListCell" bundle:[NSBundle mainBundle]] forCellReuseIdentifier:@"cell"];
         [middleView addSubview:self.ListView];
         openOrNot = NO;
@@ -101,59 +106,147 @@
     
 }
 
+#pragma mark ------创造图片视图
 
+-(void)MakePictureView{
+    if (!self.PictureView) {
+        self.PictureView = [[UITableView alloc]initWithFrame:CGRectMake(20,50,self.view.frame.size.width-40,self.view.frame.size.height)];
+        [self.PictureView setDataSource:self];
+        [self.PictureView setBackgroundColor:[UIColor clearColor]];
+        [self.PictureView setSeparatorColor:[UIColor clearColor]];
+        [self.PictureView setShowsVerticalScrollIndicator:NO];
+        self.PictureView.rowHeight = (self.view.frame.size.width-40-20*2)/3+20;
+        
+        [self.PictureView setTag:1];
+//        [self.PictureView registerNib:[UINib nibWithNibName:@"PictureCell" bundle:[NSBundle mainBundle]] forCellReuseIdentifier:@"cell2"];
+        [middleView addSubview:self.PictureView];
+        
+    }
+
+
+}
+
+
+
+
+
+#pragma mark ------UItableviewController
 -(NSInteger)tableView:(nonnull UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
 
-    return [groupArray count];
+    if (tableView.tag == 2) {
+        return [groupArray count];
+    }else{
+        if ([imageArray count]%3==0) {
+            return [imageArray count]/3;
+        }
+        return ([imageArray count]/3+1) ;
+        
+        
+        
+    }
+    
 }
 
 -(UITableViewCell*)tableView:(nonnull UITableView *)tableView cellForRowAtIndexPath:(nonnull NSIndexPath *)indexPath
 {
-    ListCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
-    [cell setSelectionStyle:UITableViewCellSelectionStyleDefault];
-    ALAssetsGroup *group = [groupArray objectAtIndex:indexPath.row];
-    cell.group = group;
-    NSString* text = [group valueForProperty:ALAssetsGroupPropertyName];
-    cell.text.text = text;
-    return cell;
+    if (tableView.tag == 2) {
+        ListCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleDefault];
+        ALAssetsGroup *group = [groupArray objectAtIndex:indexPath.row];
+        cell.group = group;
+        NSString* text = [group valueForProperty:ALAssetsGroupPropertyName];
+        cell.text.text = text;
+        return cell;
+    }else{
+        UITableViewCell *cell2 = [tableView dequeueReusableCellWithIdentifier:@"cell2"];
+        if (cell2 == nil) {
+            cell2 = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell2"];
+        }
+        [cell2 setSelectionStyle:UITableViewCellSelectionStyleNone];
+        CGFloat width = (self.view.frame.size.width-40-20*2)/3;
+       
+        if ((3*indexPath.row+1)<=[imageArray count]) {
+             UIButton1 *button1 = [[UIButton1 alloc]initWithFrame:CGRectMake(0, 0,width,width )];
+            [button1 addTarget:self action:@selector(selectImage2:) forControlEvents:UIControlEventTouchUpInside];
+        UIImageView *imageView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0,width,width )];
+        ALAsset *image1 =[imageArray objectAtIndex:3*indexPath.row+0];
+            button1.Asset = image1;
+            imageView.image = [UIImage imageWithCGImage:image1.thumbnail];
+              [cell2 addSubview:imageView];
+             [cell2 addSubview:button1];
+        }
+        if ((3*indexPath.row+2)<=[imageArray count]) {
+            UIButton1 *button2 = [[UIButton1 alloc]initWithFrame:CGRectMake(width+20,0, width,width )];
+            [button2 addTarget:self action:@selector(selectImage2:) forControlEvents:UIControlEventTouchUpInside];
+             UIImageView *imageView2 = [[UIImageView alloc]initWithFrame:CGRectMake(width+20,0, width,width )];
+            ALAsset *image2 =[imageArray objectAtIndex:3*indexPath.row+1];
+            button2.Asset = image2;
+            imageView2.image = [UIImage imageWithCGImage:image2.thumbnail];
+              [cell2 addSubview:imageView2];
+                  [cell2 addSubview:button2];
+        }
+        
+        if ((3*indexPath.row+3)<=[imageArray count]) {
+            UIButton1 *button3 = [[UIButton1 alloc]initWithFrame:CGRectMake((width+20)*2,0, width, width) ];
+              [button3 addTarget:self action:@selector(selectImage2:) forControlEvents:UIControlEventTouchUpInside];
+            UIImageView *imageView3 = [[UIImageView alloc]initWithFrame:CGRectMake((width+20)*2,0, width, width)];
+            ALAsset *image3 =[imageArray objectAtIndex:3*indexPath.row+2];
+            button3.Asset = image3;
+            imageView3.image = [UIImage imageWithCGImage:image3.thumbnail];
+             [cell2 addSubview:imageView3];
+                 [cell2 addSubview:button3];
+        }
+       
+        
+       
+  
+   
+        
+       
+        return cell2;
+    }
 }
+
 -(CGFloat)tableView:(nonnull UITableView *)tableView heightForRowAtIndexPath:(nonnull NSIndexPath *)indexPath
 {
-
-    return 50;
+    if (tableView.tag == 1) {
+        return 143.5;
+    }else {
+        return 50;
+    }
 }
+
+
 -(void)tableView:(nonnull UITableView *)tableView didSelectRowAtIndexPath:(nonnull NSIndexPath *)indexPath
 {
-    NSInteger count = indexPath.row;
-    NSArray *subviews = [scrollView subviews];
-    if (![subviews count]==0) {
-         [subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    }
-    [imageArray removeAllObjects];
-    ListCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-    ALAssetsGroup* group = cell.group;
-
-    
-    [group enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
-        if (result) {
-            [imageArray insertObject:result atIndex:index];
-            NSLog(@"%@",result);
-            index++;
-
-            [self MakeImageGroup];
-
-            
+    if (tableView.tag == 2) {
+        NSInteger count = indexPath.row;
+        NSArray *subviews = [scrollView subviews];
+        if (![subviews count]==0) {
+            [subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
         }
-    }];
-
-    if ([imageArray count] >= 1) {
-          [self MakeImageGroup];
-    }
-
+        [imageArray removeAllObjects];
+        ListCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+        ALAssetsGroup* group = cell.group;
+        
+        
+        [group enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
+            if (result) {
+                [imageArray insertObject:result atIndex:index];
+                index++;
+            }
+        }];
+        
+        if ([imageArray count] >= 1) {
+            [self.PictureView reloadData];
+        }
+        
         [UIView animateWithDuration:0.5 animations:^{
             [self.ListView setFrame:CGRectMake(20, 50,self.view.frame.size.width-40,0)];
         }];
         openOrNot = NO;
+    }
+
 
 
 
@@ -194,57 +287,17 @@
 }
 
 
--(void)MakeScrollView:(NSInteger)index{
 
-        scrollView = [[UIScrollView alloc]initWithFrame:CGRectMake(20,50,self.view.frame.size.width-40,self.view.frame.size.height)];
-        
-        scrollView.contentSize = CGSizeMake(self.view.frame.size.width-40,(60+90+(index/3)*(30+imageWidth))*1.5);
-        scrollView.pagingEnabled = NO;
-        scrollView.backgroundColor = [UIColor whiteColor];
-        [scrollView setShowsHorizontalScrollIndicator:NO];
-        [middleView addSubview:scrollView];
-    
-}
-
-
--(void)MakeImageGroup{
-    NSInteger index2 = 0;
-    NSInteger index3 = 0;
-    
-    blueOrNot = NO;
-    
-
-    
-    
-    for (ALAsset *result in imageArray) {
-        iv = [[UIImageView alloc]initWithFrame:CGRectMake(index2*(5+imageWidth),index3*(5+imageWidth),imageWidth,imageWidth)];
-        iv.image = [UIImage imageWithCGImage: result.thumbnail];
-         [scrollView addSubview:iv];
-        
-        UIButton1 *button = [[UIButton1 alloc]initWithFrame:CGRectMake(index2*(5+imageWidth),index3*(5+imageWidth),imageWidth,imageWidth)];
-        button.backgroundColor = [UIColor clearColor];
-        button.Asset = result;
-        [button addTarget:self action:@selector(selectImage2:) forControlEvents:UIControlEventTouchUpInside];
-        [scrollView addSubview:button];
-        
-        
-        index2++;
-        if (index2==4) {
-            index2 = 0;
-            index3++;
-        }
-    }
-}
 
 -(void)selectImage2:(UIButton1*)sender{
     if (blueOrNot == YES) {
         UIView *view = [self.view viewWithTag:100];
         [view removeFromSuperview];
     }
-    UIImageView *imageView = [[UIImageView alloc]initWithFrame:sender.frame];
+    UIImageView *imageView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, sender.frame.size.width,sender.frame.size.height)];
     imageView.backgroundColor = [UIColor blueColor];
     imageView.tag = 100;
-    [scrollView addSubview:imageView];
+    [sender addSubview:imageView];
     blueOrNot = YES;
     mainImage.image = [UIImage imageWithCGImage:sender.Asset.defaultRepresentation.fullScreenImage];
     NextValue = [[ALAsset alloc]init];
@@ -255,12 +308,6 @@
 
 
 
--(void)selectImage:(UIButton1*)sender{
-    ImageViewController *imageViewController = [[ImageViewController alloc]initWithALAsset:sender.Asset];
-    [self.navigationController pushViewController:imageViewController animated:YES];
-
-
-}
 
 
 
@@ -275,16 +322,17 @@
             [group enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
                 if (result) {
                     [imageArray insertObject:result atIndex:index];
-                    NSLog(@"%@",result);
+                    
                     index++;
                     
-                    [self MakeScrollView:index];
-                    [self MakeImageGroup];
+                    [self MakePictureView];
+//                    [self MakeScrollView:index];
+//                    [self MakeImageGroup];
                     
                     
                 }
             }];
-            NSLog(@"%@",group);
+            
         }
     } failureBlock:^(NSError *error) {
         NSLog(@"Group not found");
