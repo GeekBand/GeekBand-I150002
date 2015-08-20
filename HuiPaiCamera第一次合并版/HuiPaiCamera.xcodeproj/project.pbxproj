@@ -450,8 +450,8 @@
 			isa = PBXGroup;
 			children = (
 				DF4E07231B7D7EDC00347996 /* CCLocation */,
-				DF4E07201B7D7E8D00347996 /* FXViewController.m */,
 				DF4E07211B7D7E8D00347996 /* FXViewController.h */,
+				DF4E07201B7D7E8D00347996 /* FXViewController.m */,
 				DF4FBF971B7ADBEB00197E43 /* SJAvatarBrowser.h */,
 				DF4FBF981B7ADBEB00197E43 /* SJAvatarBrowser.m */,
 			);

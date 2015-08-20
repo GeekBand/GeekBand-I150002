@@ -14,5 +14,8 @@
 @property (nonatomic , strong)UITextField *textFiled;
 @property(nonatomic,strong)UILabel *textLabel;
 @property(nonatomic,strong)NSString     *location;
+@property(nonatomic) double latitude;
+@property(nonatomic) double longitude;
++ (UIImage *)thumbnailWithImageWithoutScale:(UIImage *)image size:(CGSize)asize;
 @end
 

@@ -31,11 +31,29 @@
     }
     
     
-    [self createButton];
     
     
     self.title=@"分享";
     [self.view setBackgroundColor:[UIColor whiteColor]];
+    //定位
+    _textLabel = [[UILabel alloc] initWithFrame:CGRectMake(140, 245, 220, 60)];
+    _textLabel.backgroundColor = [UIColor clearColor];
+    _textLabel.font = [UIFont systemFontOfSize:15];
+    _textLabel.textColor = [UIColor redColor];
+    _textLabel.textAlignment = NSTextAlignmentCenter;
+    _textLabel.numberOfLines = 0;
+    _textLabel.text = @"当前位置";
+    [self.view addSubview:_textLabel];
+    
+    UIButton *allBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    allBtn.frame = CGRectMake(60,260, 120, 30);
+    [allBtn setTitle:@"点击获取地址" forState:UIControlStateNormal];
+    [allBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [allBtn addTarget:self action:@selector(getAllInfo) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:allBtn];
+    
+    [self showBorder:allBtn];
+    
     //    图片
     CGRect rectImg=CGRectMake(60, 140, 100, 100);
     self.img=[UIImage imageNamed:@"test.png"];
@@ -119,29 +137,21 @@
     //创建分享参数
     NSMutableDictionary *shareParams = [NSMutableDictionary dictionary];
     NSString *content;
-    NSString *url;
     if ([_textFiled.text isEqual:@""]) {
         content= [[NSMutableString alloc] initWithString:@"分享"];
     }
     content =_textFiled.text;
-   
     
-    if ([ _textLabel.text isEqual:@"当前位置"]) {
-        url=nil;
-    }
-    else
-    {
-        url = [[NSString alloc] initWithString:[NSString stringWithFormat:@"http://mob.com/ %@" ,_textLabel.text]];
-   
-    }
-  
-    [shareParams SSDKSetupShareParamsByText:content
-                                     images:@[_img]
-                                        url:[NSURL URLWithString:url]
-                                      title:@""
-                                       type:SSDKContentTypeAuto];
     
-    //进行分享
+    
+    [shareParams SSDKSetupSinaWeiboShareParamsByText:content
+                                               title:@"分享"
+                                               image:_img
+                                                 url:nil
+                                            latitude:_latitude
+                                           longitude:_longitude
+                                            objectID:nil
+                                                type:SSDKContentTypeImage];    //进行分享
     [ShareSDK share:SSDKPlatformTypeSinaWeibo
          parameters:shareParams
      onStateChanged:^(SSDKResponseState state, NSDictionary *userData, SSDKContentEntity *contentEntity, NSError *error) {
@@ -186,16 +196,27 @@
 -(void)WeChatShareClick:(id)button
 {
     //创建分享参数
+    NSString *content;
+    if ([_textFiled.text isEqual:@""]) {
+        content= [[NSMutableString alloc] initWithString:@"分享"];
+    }
+    content =_textFiled.text;
+    CGSize size = CGSizeMake(100.0f, 100.0f);
+    UIImage *WeChatthumbImage=[FXViewController thumbnailWithImageWithoutScale:_img size:size];
     NSMutableDictionary *shareParams = [NSMutableDictionary dictionary];
-    [shareParams SSDKSetupShareParamsByText:self.textFiled.text
-                                     images:@[self.img]
-                                        url:nil
-                                      title:@""
-                                       type:SSDKContentTypeAuto];
-    
-    
+    [shareParams SSDKSetupWeChatParamsByText:content
+                                       title:@"分享"
+                                         url:nil
+                                  thumbImage:WeChatthumbImage
+                                       image:_img
+                                musicFileURL:nil
+                                     extInfo:nil
+                                    fileData:nil
+                                emoticonData:nil
+                                        type:SSDKContentTypeImage
+                          forPlatformSubType:SSDKPlatformSubTypeWechatTimeline];
     //进行分享
-    [ShareSDK share:SSDKPlatformTypeWechat
+    [ShareSDK share:SSDKPlatformSubTypeWechatTimeline
          parameters:shareParams
      onStateChanged:^(SSDKResponseState state, NSDictionary *userData, SSDKContentEntity *contentEntity, NSError *error) {
          
@@ -239,16 +260,25 @@
 -(void)QQShareClick:(id)button
 {
     //创建分享参数
+    NSString *content;
+    if ([_textFiled.text isEqual:@""]) {
+        content= [[NSMutableString alloc] initWithString:@"分享"];
+    }
+    content =_textFiled.text;
+    CGSize size = CGSizeMake(100.0f, 100.0f);
+    UIImage *QQthumbImage=[FXViewController thumbnailWithImageWithoutScale:_img size:size];
     NSMutableDictionary *shareParams = [NSMutableDictionary dictionary];
-    [shareParams SSDKSetupShareParamsByText:self.textFiled.text
-                                     images:@[self.img]
-                                        url:nil
-                                      title:@""
-                                       type:SSDKContentTypeAuto];
+    [shareParams SSDKSetupQQParamsByText:content
+                                   title:@"分享"
+                                     url:nil
+                              thumbImage:QQthumbImage
+                                   image:_img
+                                    type:SSDKContentTypeImage
+                      forPlatformSubType:SSDKPlatformSubTypeQZone];
     
     
     //进行分享
-    [ShareSDK share:SSDKPlatformTypeQQ
+    [ShareSDK share:SSDKPlatformSubTypeQZone
          parameters:shareParams
      onStateChanged:^(SSDKResponseState state, NSDictionary *userData, SSDKContentEntity *contentEntity, NSError *error) {
          
@@ -299,7 +329,8 @@
     if (IS_IOS8) {
         
         [[CCLocationManager shareLocation]getLocationCoordinate:^(CLLocationCoordinate2D locationCorrrdinate) {
-            string = [NSString stringWithFormat:@"%f %f",locationCorrrdinate.latitude,locationCorrrdinate.longitude];
+            _latitude=locationCorrrdinate.latitude;
+            _longitude=locationCorrrdinate.longitude;
         } withAddress:^(NSString *addressString) {
             NSLog(@"%@",addressString);
             string = [NSString stringWithFormat:@"%@",addressString];
@@ -315,31 +346,75 @@
     NSLog(@"text %@",text);
     _textLabel.text = text;
 }
--(void)createButton{
-    _textLabel = [[UILabel alloc] initWithFrame:CGRectMake(140, 245, 220, 60)];
-    _textLabel.backgroundColor = [UIColor clearColor];
-    _textLabel.font = [UIFont systemFontOfSize:15];
-    _textLabel.textColor = [UIColor redColor];
-    _textLabel.textAlignment = NSTextAlignmentCenter;
-    _textLabel.numberOfLines = 0;
-    _textLabel.text = @"当前位置";
-    [self.view addSubview:_textLabel];
-    
-    UIButton *allBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    allBtn.frame = CGRectMake(60,260, 120, 30);
-    [allBtn setTitle:@"点击获取地址" forState:UIControlStateNormal];
-    [allBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [allBtn addTarget:self action:@selector(getAllInfo) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:allBtn];
-    
-    [self showBorder:allBtn];
-}
 -(void)showBorder:(UIButton *)sender{
     sender.layer.borderColor=[UIColor redColor].CGColor;
     sender.layer.borderWidth=0.5;
     sender.layer.cornerRadius = 8;
     
 }
+//缩略图生成
++ (UIImage *)thumbnailWithImageWithoutScale:(UIImage *)image size:(CGSize)asize
+
+{
+    
+    UIImage *newimage;
+    
+    if (nil == image) {
+        
+        newimage = nil;
+        
+    }
+    
+    else{
+        
+        CGSize oldsize = image.size;
+        
+        CGRect rect;
+        
+        if (asize.width/asize.height > oldsize.width/oldsize.height) {
+            
+            rect.size.width = asize.height*oldsize.width/oldsize.height;
+            
+            rect.size.height = asize.height;
+            
+            rect.origin.x = (asize.width - rect.size.width)/2;
+            
+            rect.origin.y = 0;
+            
+        }
+        
+        else{
+            
+            rect.size.width = asize.width;
+            
+            rect.size.height = asize.width*oldsize.height/oldsize.width;
+            
+            rect.origin.x = 0;
+            
+            rect.origin.y = (asize.height - rect.size.height)/2;
+            
+        }
+        
+        UIGraphicsBeginImageContext(asize);
+        
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        
+        CGContextSetFillColorWithColor(context, [[UIColor clearColor] CGColor]);
+        
+        UIRectFill(CGRectMake(0, 0, asize.width, asize.height));//clear background
+        
+        [image drawInRect:rect];
+        
+        newimage = UIGraphicsGetImageFromCurrentImageContext();
+        
+        UIGraphicsEndImageContext();
+        
+    }
+    
+    return newimage;
+    
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
