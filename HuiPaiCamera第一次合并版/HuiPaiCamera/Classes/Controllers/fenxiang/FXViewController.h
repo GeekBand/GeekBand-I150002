@@ -8,14 +8,20 @@
 
 #import <UIKit/UIKit.h>
 #import "SJAvatarBrowser.h"
-@interface FXViewController : UIViewController<UITextFieldDelegate>
+@interface FXViewController : UIViewController<UITextFieldDelegate,UITextViewDelegate>
++ (UIImage *)thumbnailWithImageWithoutScale:(UIImage *)image size:(CGSize)asize;
+
 @property (nonatomic , strong)UIImageView *imgText;
 @property (nonatomic , strong)UIImage *img;
-@property (nonatomic , strong)UITextField *textFiled;
+//@property (nonatomic , strong)UITextField *textFiled;
+@property (nonatomic , strong)UITextView *textView;
 @property(nonatomic,strong)UILabel *textLabel;
 @property(nonatomic,strong)NSString     *location;
 @property(nonatomic) double latitude;
 @property(nonatomic) double longitude;
+<<<<<<< Updated upstream
 + (UIImage *)thumbnailWithImageWithoutScale:(UIImage *)image size:(CGSize)asize;
+=======
+>>>>>>> Stashed changes
 @end
 
